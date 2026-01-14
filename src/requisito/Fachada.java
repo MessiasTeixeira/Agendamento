@@ -76,12 +76,12 @@ public class Fachada {
 			repositorio.adicionar(reuniao);
 			
 			for (Participante pa : participantes) {
-				adicionarParticipante(pa.getNome(), reuniao.getId());
+				adicionarParticipanteReuniao(pa.getNome(), reuniao.getId());
 			}
 		 }
 	 }
 	 
-	 public static void adicionarParticipante(String nome, int id) throws Exception {
+	 public static void adicionarParticipanteReuniao(String nome, int id) throws Exception {
 		    Reuniao r = repositorio.localizarReuniao(id);
 	
 		    if (r == null)
@@ -97,7 +97,7 @@ public class Fachada {
 		    r.adicionar(p);
 	}
 	 
-	 public static void removerParticipante(String nome, int id) throws Exception {
+	 public static void removerParticipanteReuniao(String nome, int id) throws Exception {
 		    Reuniao r = repositorio.localizarReuniao(id);
 			
 		    if (r == null)
