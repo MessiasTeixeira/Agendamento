@@ -6,7 +6,6 @@
 package aplicacaoConsole;
 
 import modelo.Participante;
-import modelo.Reuniao;
 import requisito.Fachada;
 
 public class Consultar {

@@ -10,14 +10,16 @@ import requisito.Fachada;
 public class Apagar {
 
 	public Apagar() {
-	System.out.println("---------apagando reuniao 4-----");
+	System.out.println("---------apagando reuniao 1-----");
 		try {
-			Fachada.cancelarReuniao(4);
+			Fachada.cancelarReuniao(1);
 		}
 		catch(Exception e){
 			System.out.println("-->" + e.getMessage());
 		}
+
 	}
+
 
 	public static void main(String[] args){
 		new Apagar();

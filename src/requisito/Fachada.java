@@ -42,6 +42,7 @@ public class Fachada {
 
 		    Empregado empregado = new Empregado(nome, email, setor);
 		    repositorio.adicionar(empregado);
+			repositorio.gravarObjetos();
 		}
 
 	 public static void criarConvidado(String nome, String email, String instituicao) throws Exception {
@@ -57,20 +58,30 @@ public class Fachada {
 
 		 Convidado convidado = new Convidado(nome, email, instituicao);
 		 repositorio.adicionar(convidado);
+		 repositorio.gravarObjetos();
 	 }
 	 
 	 public static void criarReuniao(String data, String assunto, ArrayList<String> listaNome) throws Exception {
-		 if (listaNome.size() >= 2) {
-			 ArrayList<Participante> participantes = new ArrayList<>();
-			 for (String nome : listaNome) {
-		        Participante p = repositorio.localizarParticipante(nome);
+			if (listaNome.size() < 2) {
+				throw new Exception("Uma reunião deve ter no mínimo dois participantes");
+			}
+			
+			for (Reuniao r : listarReunioes()) {
+				if (r.getData().equals(data)) {
+					throw new Exception("Reunião com essa data já foi registrada");
+				}
+			}
+		
+			ArrayList<Participante> participantes = new ArrayList<>();
+			for (String nome : listaNome) {
+				Participante p = repositorio.localizarParticipante(nome);
 
-		        if (p == null) {
-		            throw new Exception("participante inexistente: " + nome);
-		        } else {
-		        	participantes.add(p);
-		        }
-			 }
+				if (p == null) {
+					throw new Exception("participante inexistente: " + nome);
+				} else {
+					participantes.add(p);
+				}
+			}
 			int id = repositorio.incrementarId();
 			Reuniao reuniao = new Reuniao(id, data, assunto);
 			repositorio.adicionar(reuniao);
@@ -78,7 +89,8 @@ public class Fachada {
 			for (Participante pa : participantes) {
 				adicionarParticipanteReuniao(pa.getNome(), reuniao.getId());
 			}
-		 }
+
+			repositorio.gravarObjetos();
 	 }
 	 
 	 public static void adicionarParticipanteReuniao(String nome, int id) throws Exception {
@@ -95,6 +107,7 @@ public class Fachada {
 		        throw new Exception("Participante já está na reunião");
 
 		    r.adicionar(p);
+			repositorio.gravarObjetos();
 	}
 	 
 	 public static void removerParticipanteReuniao(String nome, int id) throws Exception {
@@ -110,7 +123,11 @@ public class Fachada {
 		    if (!r.getParticipantes().contains(p))
 		        throw new Exception("Participante não está na reunião");
 
-		    r.getParticipantes().remove(p);	 
+		    r.getParticipantes().remove(p);
+			if (r.getParticipantes().size() < 2) {
+				cancelarReuniao(id);
+				throw new Exception("A reunião foi cancelada, pois deve ter no mínimo dois participantes.");
+			}
 	}
 	 
 	public static void cancelarReuniao(int id) throws Exception {
@@ -125,6 +142,7 @@ public class Fachada {
 	    }
 	    
 	    repositorio.remover(r);
+		repositorio.gravarObjetos();
 	}
 	
 	

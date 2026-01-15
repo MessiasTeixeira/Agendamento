@@ -34,10 +34,8 @@ import javax.swing.table.DefaultTableModel;
 import modelo.Participante;
 import modelo.Reuniao;
 import requisito.Fachada;
-import javax.swing.BoxLayout;
-import java.awt.CardLayout;
+
 import java.awt.GridLayout;
-import java.awt.FlowLayout;
 
 public class TelaParticipante {
 	private JDialog frame;

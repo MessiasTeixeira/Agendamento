@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.IOException;
 
 import modelo.Participante;
 import modelo.Reuniao;
@@ -18,7 +19,7 @@ public class Repositorio {
 	private ArrayList<Empregado> empregados = new ArrayList<>();
 	
 	public Repositorio() {
-		carregarObjetos();
+		lerObjetos();
 	}
 	
 	public void adicionar(Participante p) {
@@ -28,6 +29,16 @@ public class Repositorio {
 	public void remover(Participante p) {
 		participantes.remove(p);
 	}
+
+	public void adicionar(Empregado e) {
+		empregados.add(e);
+		participantes.add(e);
+	}
+
+	public void adicionar(Convidado c) {
+		convidados.add(c);
+		participantes.add(c);
+	}	
 	
 	public void adicionar(Reuniao r) {
 		reunioes.add(r);
@@ -91,114 +102,144 @@ public class Repositorio {
 	}
 	
 	
-	public void carregarObjetos()  	{
-		// carregar os objetos dos arquivos .csv
-
+	public void lerObjetos() {
+		File f1 = null;
+		File f2 = null;
 		try {
-			//caso os arquivos nao existam, serao criados vazios
-			//obter o caminho do prog. no S.O. para criacao dos arquivos
-			File f1 = new File( new File(".\\reunioes.csv").getCanonicalPath() ) ; 
-			File f2 = new File( new File(".\\participantes.csv").getCanonicalPath() ) ; 
-			if (!f1.exists() || !f2.exists() ) {
-				//System.out.println("criando arquivos .csv vazios");
-				FileWriter arquivo1 = new FileWriter(f1); arquivo1.close();
-				FileWriter arquivo2 = new FileWriter(f2); arquivo2.close();
+			// caso os arquivos nao existam, serao criados vazios
+			// obter o caminho do prog. no S.O. para criacao dos arquivos
+			f1 = new File(new File(".\\reunioes.csv").getCanonicalPath());
+			f2 = new File(new File(".\\participantes.csv").getCanonicalPath());
+
+			if (!f1.exists() || !f2.exists()) {
+				FileWriter arquivo1 = new FileWriter(f1);
+				arquivo1.close();
+				FileWriter arquivo2 = new FileWriter(f2);
+				arquivo2.close();
 				return;
 			}
-		}
-		catch(Exception ex)		{
-			throw new RuntimeException("prob. na criacao dos arquivos:"+ex.getMessage());
+
+		} catch (Exception ex) {
+			throw new RuntimeException("problema na criacao dos arquivos csv:" + ex.getMessage());
 		}
 
-		String linha;	
-		String[] partes;	
-		String id,data,assunto, nome, email;
-		Reuniao reuniao;
-		Participante participante;
-
-		Scanner arquivo=null;
-		try	{
-			File f = new File( new File(".\\reunioes.csv").getCanonicalPath() )  ;
-			arquivo = new Scanner(f);	 //  pasta do projeto
-			while(arquivo.hasNextLine()) 	{
-				linha = arquivo.nextLine().trim();		
-				partes = linha.split(";");	
-				//System.out.println(Arrays.toString(partes));
+		Scanner arquivo1 = null;
+		Scanner arquivo2 = null;
+		try {
+			arquivo1 = new Scanner(f1);// Para arquivo interno
+			String linha;
+			String[] partes;
+			String id, data, assunto;
+			Reuniao r = null;
+			while (arquivo1.hasNextLine()) {
+				linha = arquivo1.nextLine().trim();
+				partes = linha.split(";");
 				id = partes[0];
 				data = partes[1];
 				assunto = partes[2];
-				reuniao = new Reuniao(Integer.parseInt(id),data, assunto);
-				this.adicionar(reuniao);
-			} 
-			arquivo.close();
-		}
-		catch(Exception ex)		{
-			throw new RuntimeException("leitura arquivo de prateleiras:"+ex.getMessage());
-		}
-
-		try	{
-			File f = new File( new File(".\\participantes.csv").getCanonicalPath())  ;
-			arquivo = new Scanner(f);	 //  pasta do projeto
-			while(arquivo.hasNextLine()) 	{
-				linha = arquivo.nextLine().trim();	
-				partes = linha.split(";");
-				//System.out.println(Arrays.toString(partes));
-				nome = partes[0];
-				email = partes[1];
-				participante = new Participante(nome, email);
-				this.adicionar(participante);
-				//if(partes.length==3) {
-				//	idprat = partes[2];		//campo id
-				//	prateleira = this.localizarPrateleira(Integer.parseInt(idprat));
-				//	prateleira.adicionar(produto);
-				//}
+				r = new Reuniao(Integer.parseInt(id), data, assunto);
+				//System.out.println("reuniao lida: " + r);
+				this.adicionar(r);
 			}
-			arquivo.close();
+		} catch (Exception e) {
+			throw new RuntimeException("arquivo de reunioes inexistente:");
 		}
-		catch(Exception ex)		{
-			throw new RuntimeException("leitura arquivo de participantes:"+ex.getMessage());
-		}
-	}
-	public String idReuniao(Participante p) {
-	    StringBuilder sb = new StringBuilder();
+		arquivo1.close();
 
-	    for (Reuniao r : p.getReunioes()) {
-	        if (sb.length() > 0)
-	            sb.append(",");
-	        sb.append(r.getId());
-	    }
-	    return sb.toString();
-	}
-	
-	public void	gravarObjetos()  {
-		//gravar nos arquivos csv os objetos que est�o no reposit�rio
-		FileWriter arquivo=null;
-		try	{
-			File f = new File( new File(".\\participantes.csv").getCanonicalPath())  ;
-			arquivo = new FileWriter(f); 
-			for(Participante e : participantes) 	{
-				if (e instanceof Empregado) {
-					arquivo.write(e.getClass().getSimpleName()+";"+e.getNome()+";"+e.getEmail()+";"+e.getSetor()+";"+idReuniao(e)+"\n");
-				} else {
-					arquivo.write(e.getClass().getSimpleName()+";"+e.getNome()+";"+e.getEmail()+";"+e.getInstituicao()+";"+idReuniao(e)+"\n");
+		try {
+			arquivo2 = new Scanner(f2);// Para arquivo interno
+			String linha;
+			String[] partes;
+			Reuniao r = null;
+			Participante p = null;
+			Empregado e = null;
+			Convidado c = null;
+			String nome, email, complemento, tipo;
+			while (arquivo2.hasNextLine()) {
+				linha = arquivo2.nextLine().trim();
+				partes = linha.split(";");
+				tipo = partes[0];
+				nome = partes[1];
+				email = partes[2];
+				complemento = partes[3];
+				if (tipo.equals("EMPREGADO")) {
+					e = new Empregado(nome, email, complemento);
+					empregados.add(e);
+					participantes.add(e);
+					p=e;
+				} else if (tipo.equals("CONVIDADO")) {
+					c = new Convidado(nome, email, complemento);
+					convidados.add(c);
+					participantes.add(c);
+					p=c;
+				} else
+					throw new RuntimeException("participantes.csv - tipo inv�lido: " + tipo);
+
+				// processar lista de ids de reunioes do participante lido
+				if (partes.length > 4) {
+					String[] idsReunioes = partes[4].split(",");
+					// relacionar participante com as reunioes correspondentes
+					for (String idReuniao : idsReunioes) {
+						r = this.localizarReuniao(Integer.parseInt(idReuniao));
+						r.adicionar(p);
+						p.adicionar(r);
+					}
 				}
-			} 
-			arquivo.close();
-		}
-		catch(Exception e){
-			throw new RuntimeException("problema na grava��o do arquivo  prateleiras "+e.getMessage());
+				//System.out.println("participante lido: " + p);
+			}
+			arquivo2.close();
+		} catch (Exception e) {
+			throw new RuntimeException("arquivo de participantes inexistente:");
 		}
 
-		try	{
-			File f = new File( new File(".\\reunioes.csv").getCanonicalPath())  ;
-			arquivo = new FileWriter(f) ; 
-			for(Reuniao r : reunioes) {
-				arquivo.write(r.getId() +";"+ r.getData() +";"+ r.getAssunto()+"\n");	
-			} 
-			arquivo.close();
+	}
+
+	public void gravarObjetos() {
+		// gravar nos arquivos textos os dados dos participantes e
+		// das reuni�es que est�o no reposit�rio
+		FileWriter arquivo1 = null;
+		FileWriter arquivo2 = null;
+		try {
+			arquivo1 = new FileWriter(new File(".\\participantes.csv").getCanonicalPath());
+			for (Empregado e : empregados) {
+				// System.out.println("gravando empregado: " + e);
+				String dados = "EMPREGADO;" + e.getNome() + ";" + e.getEmail() + ";" + e.getSetor() + ";";
+				ArrayList<String> idsReunioes = new ArrayList<>();
+				for (Reuniao r : e.getReunioes())
+					idsReunioes.add(r.getId() + "");
+				String ids = String.join(",", idsReunioes);
+
+				arquivo1.write(dados + ids + "\n");
+			}
+			for (Convidado c : convidados) {
+				// System.out.println("gravando convidado: " + c);
+				String dados = "CONVIDADO;" + c.getNome() + ";" + c.getEmail() + ";" + c.getInstituicao() + ";";
+				ArrayList<String> idsReunioes = new ArrayList<>();
+				for (Reuniao r : c.getReunioes())
+					idsReunioes.add(r.getId() + "");
+				String ids = String.join(",", idsReunioes);
+
+				arquivo1.write(dados + ids + "\n");
+			}
+			arquivo1.close();
+		} catch (IOException e) {
+			throw new RuntimeException("problema na grava��o de participantes.csv");
+		} catch (Exception ex) {
+			throw ex;
 		}
-		catch (Exception e) {
-			throw new RuntimeException("problema na grava��o do arquivo  produtos "+e.getMessage());
+
+		try {
+			arquivo2 = new FileWriter(new File(".\\reunioes.csv").getCanonicalPath());
+			for (Reuniao r : getReuniao()) {
+				// System.out.println("gravando reuniao: " + r.getId());
+				arquivo2.write(r.getId() + ";" + r.getData() + ";" + r.getAssunto() + "\n");
+			}
+			arquivo2.close();
+		} catch (IOException e) {
+			throw new RuntimeException("problema na grava��o de reunioes.csv");
+		} catch (Exception ex) {
+			throw ex;
 		}
+
 	}
 }
